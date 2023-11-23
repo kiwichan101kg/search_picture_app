@@ -27,9 +27,9 @@ class PixabayPage extends StatefulWidget {
 class _PixabayPageState extends State<PixabayPage> {
   List imageList = [];
 
-  Future<void> fetchImages() async {
+  Future<void> fetchImages(String text) async {
     Response response = await Dio().get(
-        'https://pixabay.com/api/?key=29109013-1519767de58acc407c24af782&q=ケーキ&image_type=photo&per_page=100');
+        'https://pixabay.com/api/?key=29109013-1519767de58acc407c24af782&q=$text&image_type=photo&per_page=100');
     // print(response.data);
 
     imageList = response.data['hits'];
@@ -41,12 +41,23 @@ class _PixabayPageState extends State<PixabayPage> {
   @override
   void initState() {
     super.initState();
-    fetchImages();
+    fetchImages('秋');
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: TextFormField(
+          decoration: InputDecoration(
+            fillColor: Colors.white,
+            filled: true,
+          ),
+          onFieldSubmitted: (text) {
+            fetchImages(text);
+          },
+        ),
+      ),
       body: GridView.builder(
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 3),
