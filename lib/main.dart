@@ -41,7 +41,20 @@ class _PixabayPageState extends State<PixabayPage> {
     setState(() {});
   }
 
-  Future<void> shareImage() async {}
+  Future<void> shareImage(String url) async {
+    final dir = await getTemporaryDirectory();
+
+    final response = await Dio()
+        .get(url, options: Options(responseType: ResponseType.bytes));
+
+    // フォルダの中に image.png という名前でファイルを作り、そこに画像データを書き込みます。
+    final imageFile =
+        await File('${dir.path}/image.png').writeAsBytes(response.data);
+
+    // path を指定すると share できます。
+    await Share.shareFiles([imageFile.path]);
+  }
+
   @override
   void initState() {
     fetchImage('いちご');
@@ -71,17 +84,7 @@ class _PixabayPageState extends State<PixabayPage> {
               Map<String, dynamic> image = imageList[index];
               return InkWell(
                 onTap: () async {
-                  final dir = await getTemporaryDirectory();
-
-                  final response = await Dio().get(image['webformatURL'],
-                      options: Options(responseType: ResponseType.bytes));
-
-                  // フォルダの中に image.png という名前でファイルを作り、そこに画像データを書き込みます。
-                  final imageFile = await File('${dir.path}/image.png')
-                      .writeAsBytes(response.data);
-
-                  // path を指定すると share できます。
-                  await Share.shareFiles([imageFile.path]);
+                  shareImage(image['webformatURL']);
                 },
                 child: Stack(
                   // StackFit.expand を与えると領域いっぱいに広がろうとします。
