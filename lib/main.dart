@@ -27,7 +27,7 @@ class PixabayPage extends StatefulWidget {
 }
 
 class _PixabayPageState extends State<PixabayPage> {
-  List imageList = [];
+  List<PixabayImage> pixabayImages = [];
   Future<void> fetchImage(String text) async {
     final response =
         await Dio().get('https://pixabay.com/api', queryParameters: {
@@ -37,7 +37,8 @@ class _PixabayPageState extends State<PixabayPage> {
       'per_page': 100,
     });
     print(response.data);
-    imageList = response.data['hits'];
+    List hits = response.data['hits'];
+    pixabayImages = hits.map((v) => PixabayImage.fromMap(v)).toList();
     setState(() {});
   }
 
@@ -73,7 +74,7 @@ class _PixabayPageState extends State<PixabayPage> {
           ),
         ),
         body: GridView.builder(
-            itemCount: imageList.length,
+            itemCount: pixabayImages.length,
             // GridViewを設定する引数を指定
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               // crossAxisSpacing: 10, //ボックス左右間のスペース
@@ -81,17 +82,17 @@ class _PixabayPageState extends State<PixabayPage> {
               crossAxisCount: 3, //ボックスを横に並べる数
             ),
             itemBuilder: (context, index) {
-              Map<String, dynamic> image = imageList[index];
+              PixabayImage pixabayImage = pixabayImages[index];
               return InkWell(
                 onTap: () async {
-                  shareImage(image['webformatURL']);
+                  shareImage(pixabayImage.webformatURL);
                 },
                 child: Stack(
                   // StackFit.expand を与えると領域いっぱいに広がろうとします。
                   fit: StackFit.expand,
                   children: [
                     Image.network(
-                      image['previewURL'],
+                      pixabayImage.previewURL,
                       // BoxFit.cover を与えると領域いっぱいに広がろうとします。
                       fit: BoxFit.cover,
                     ),
@@ -104,7 +105,7 @@ class _PixabayPageState extends State<PixabayPage> {
                             // MainAxisSize.min を与えると必要最小限のサイズに縮小します。
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text(image['likes'].toString()),
+                              Text(pixabayImage.likes.toString()),
                               Icon(
                                 Icons.thumb_up_alt_outlined,
                                 size: 14,
@@ -116,5 +117,25 @@ class _PixabayPageState extends State<PixabayPage> {
                 ),
               );
             }));
+  }
+}
+
+class PixabayImage {
+  final String webformatURL;
+  final String previewURL;
+  final int likes;
+
+// コンストラクタの定義
+  PixabayImage(
+      {required this.webformatURL,
+      required this.previewURL,
+      required this.likes});
+
+// Mapのインスタンス作成
+  factory PixabayImage.fromMap(Map<String, dynamic> map) {
+    return PixabayImage(
+        webformatURL: map['webformatURL'],
+        previewURL: map['previewURL'],
+        likes: map['likes']);
   }
 }
